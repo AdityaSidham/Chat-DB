@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import ProgrammingError
 
 # Gemini Setup
-genai.configure(api_key="AIzaSyCRroUkwJqmkm22SSfZQ4eZzagMTU_k5Qg")  
+genai.configure(api_key="Your_API_KEY")  
 model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-002")
 
 # MySQL connection
@@ -18,7 +18,7 @@ def get_connection(db_name=None):
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="12345",
+        password="password",
         database=db_name if db_name else None,
         sql_mode="STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION"  # removed ONLY_FULL_GROUP_BY
     )
