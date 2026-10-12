@@ -38,17 +38,14 @@ It's a graduate project from USC (spring 2025). I led the four-person team, shap
 ## How it works
 
 ```mermaid
-flowchart LR
-    Q["Question in English"] --> S
-    subgraph App["chatDB_pt1.py (Streamlit)"]
-        S["Read the live schema<br>MySQL: SHOW TABLES + DESCRIBE<br>MongoDB: fields of each collection"] --> P["Build a dialect-specific prompt<br>real names only, no markdown"]
-        P --> G{{Gemini}}
-        G --> C["Clean the reply<br>strip fences and notes"]
-        C --> X{Engine}
-        X -- MySQL --> SQL["Show the SQL<br>run each statement"]
-        X -- MongoDB --> M["Parse (collection, query) as data<br>find, aggregate or update_many"]
-    end
-    SQL --> T["Result table"]
+flowchart TB
+    Q["Question in plain English"] --> S["Read the live schema<br>MySQL: SHOW TABLES + DESCRIBE<br>MongoDB: fields of each collection"]
+    S --> P["Build a dialect-specific prompt<br>real names only, no markdown"]
+    P --> G{{Gemini}}
+    G --> C["Clean the reply: strip fences and notes"]
+    C --> SQL["MySQL: show the SQL,<br>run each statement"]
+    C --> M["MongoDB: parse (collection, query) as data,<br>then find, aggregate or update_many"]
+    SQL --> T["Result table in Streamlit"]
     M --> T
 ```
 
