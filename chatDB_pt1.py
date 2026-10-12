@@ -3,34 +3,43 @@ import mysql.connector
 from pymongo import MongoClient
 import pandas as pd
 import json
+import ast
 import re
 import os
 import google.generativeai as genai
 from sqlalchemy import create_engine
 from sqlalchemy.exc import ProgrammingError
+from urllib.parse import quote_plus
+
+# Settings come from the environment so no key or password lives in the code.
+# Defaults suit a local MySQL and MongoDB install.
+MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
+MYSQL_USER = os.getenv("MYSQL_USER", "root")
+MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "password")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://127.0.0.1:27017")
 
 # Gemini Setup
-genai.configure(api_key="Your_API_KEY")  
-model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-002")
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel(model_name=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"))
 
 # MySQL connection
 def get_connection(db_name=None):
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="password",
+        host=MYSQL_HOST,
+        user=MYSQL_USER,
+        password=MYSQL_PASSWORD,
         database=db_name if db_name else None,
         sql_mode="STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION"  # removed ONLY_FULL_GROUP_BY
     )
 
 # MongoDB client
 def get_mongo_client():
-    return MongoClient("mongodb://127.0.0.1:27017")
+    return MongoClient(MONGO_URI)
 
 # Streamlit UI
 st.markdown("""
     <h1 style='text-align: center; color: #4CAF50;'>💬 ChatDB</h1>
-    <h4 style='text-align: center; color: gray;'>Powered by Gemini 1.5 Pro · MySQL + MongoDB</h4>
+    <h4 style='text-align: center; color: gray;'>Powered by Gemini · MySQL + MongoDB</h4>
 """, unsafe_allow_html=True)
 st.divider()
 
@@ -56,7 +65,7 @@ if uploaded_files and upload_db_name:
             conn.close()
 
             # Create engine using SQLAlchemy
-            engine = create_engine(f"mysql+mysqlconnector://root:12345@localhost/{upload_db_name}")
+            engine = create_engine(f"mysql+mysqlconnector://{MYSQL_USER}:{quote_plus(MYSQL_PASSWORD)}@{MYSQL_HOST}/{upload_db_name}")
 
             for file in uploaded_files:
                 table_name = os.path.splitext(file.name)[0]
@@ -195,7 +204,7 @@ if run_button and query:
             ).strip()
 
             try:
-                parsed_result = eval(mongo_query)
+                parsed_result = ast.literal_eval(mongo_query)  # parse the model's tuple as data, never run it
 
                 if isinstance(parsed_result, tuple) and isinstance(parsed_result[0], str):
                     collection_name = parsed_result[0]
